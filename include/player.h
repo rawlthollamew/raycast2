@@ -4,9 +4,9 @@
 #include "map.h"
 #include "utils.h"
 
-const float playerSpeed = 2.f;
+const float playerSpeed = 1.f;
 const int playerRadius = 4;
-const float rotationSpeed = 2.f;
+const float rotationSpeed = 1.5f;
 
 const u32 playerColor = C2D_Color32f(1.f, 1.f, 0.f, 1.f);
 
@@ -18,6 +18,8 @@ public:
 	Vector2f position;
 	float angle;
 	
-	void update(u32 kDown);
+	void update(u32 _kDown);
 	void render();
+private:
+	void collision(Vector2f _currentPosition, Vector2f _newPosition);
 };

@@ -11,6 +11,8 @@ const u32 lineColor = C2D_Color32f(0.f, 1.f, 0.f, 1.f);
 const int rayCount = 90;
 const int playerFov = 90;
 
+const int spriteDimentions = 64;
+
 class Ray
 {
 public:
@@ -36,4 +38,12 @@ public:
 	void update(Vector2f _position, float _angle);
 	void drawRays();
 	void drawWalls(Vector2i screenSize, float angle);
+private:
+	void initSprites();
+	void sliceSprite(C2D_Sprite& _currentSprite, int _slice);
+	
+	C2D_Sprite brickSprite;
+	C2D_Sprite catSprite;
+	C2D_Sprite ceilingSprite;
+	C2D_Sprite floorSprite;
 };

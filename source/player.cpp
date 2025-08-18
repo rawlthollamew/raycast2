@@ -6,46 +6,46 @@ Player::Player(Vector2f _position)
 	;
 }
 
-void Player::update(u32 kDown)
+void Player::update(u32 _kDown)
 {
 	// use current angle for up and down.
-	if (kDown & (KEY_UP | KEY_DOWN))
+	if (_kDown & (KEY_UP | KEY_DOWN))
 	{
 		float dx = playerSpeed * cos(angle * (M_PI / 180));
 		float dy = playerSpeed * sin(angle * (M_PI / 180));
-		
-		if (kDown & KEY_UP)
+
+		if (_kDown & KEY_UP)
 		{
-			position.x += dx;
-			position.y += dy;
+			collision(position, {position.x + dx, position.y});
+			collision(position, {position.x, position.y + dy});
 		}
-		if (kDown & KEY_DOWN)
+		if (_kDown & KEY_DOWN)
 		{
-			position.x -= dx;
-			position.y -= dy;
+			collision(position, {position.x - dx, position.y});
+			collision(position, {position.x, position.y - dy});
 		}
 	}
-
+	
 	// same thing for up and down except angle is rotated 90 degrees.
-	if (kDown & (KEY_LEFT | KEY_RIGHT))
+	if (_kDown & (KEY_LEFT | KEY_RIGHT))
 	{
 		float dx = playerSpeed * cos((angle - 90.f) * (M_PI / 180));
 		float dy = playerSpeed * sin((angle - 90.f) * (M_PI / 180));
 		
-		if (kDown & KEY_LEFT)
+		if (_kDown & KEY_LEFT)
 		{
-			position.x += dx;
-			position.y += dy;
+			collision(position, {position.x + dx, position.y});
+			collision(position, {position.x, position.y + dy});
 		}
-		if (kDown & KEY_RIGHT)
+		if (_kDown & KEY_RIGHT)
 		{
-			position.x -= dx;
-			position.y -= dy;
+			collision(position, {position.x - dx, position.y});
+			collision(position, {position.x, position.y - dy});
 		}
 	}
 	
-	if (kDown & KEY_L)		angle -= rotationSpeed;
-	if (kDown & KEY_R)		angle += rotationSpeed;
+	if (_kDown & KEY_L)		angle -= rotationSpeed;
+	if (_kDown & KEY_R)		angle += rotationSpeed;
 
 	angle = fmodf(angle, 360.f);
 }
@@ -53,4 +53,17 @@ void Player::update(u32 kDown)
 void Player::render()
 {
 	C2D_DrawCircleSolid(position.x, position.y, 1, playerRadius, playerColor);
+}
+
+void Player::collision(Vector2f _currentPosition, Vector2f _newPosition)
+{
+	Vector2i mapPosition = {
+		(int)C2D_Clamp(_newPosition.x / tileSize, 0, tileDimentions - 1),
+		(int)C2D_Clamp(_newPosition.y / tileSize, 0, tileDimentions - 1)
+	};
+
+	if (!Map::hit(mapPosition))
+	{
+		position = _newPosition;
+	}
 }

@@ -1,0 +1,5 @@
+--atlas -f rgb8888 -z auto
+bricks.png
+cat.png
+ceiling.png
+floor.png

@@ -1,16 +1,16 @@
 #include "map.h"
 
-bool Map::hit(int mapX, int mapY)
+bool Map::hit(Vector2i _position)
 {
-	if (tileMap[mapY][mapX] > 0) return true;
+	if (tileMap[_position.y][_position.x] > 0) return true;
 	else return false;
 }
 
 void Map::render()
 {
-	for (int x = 0; x < 10; x++)
+	for (int x = 0; x < tileDimentions; x++)
 	{
-		for (int y = 0; y < 10; y++)
+		for (int y = 0; y < tileDimentions; y++)
 		{
 			if (tileMap[y][x] > 0)
 			{

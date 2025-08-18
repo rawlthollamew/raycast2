@@ -96,7 +96,7 @@ void Ray::update()
 
 RayManager::RayManager()
 {
-	;
+	initSprites();
 }
 
 void RayManager::update(Vector2f _position, float _angle)
@@ -143,13 +143,65 @@ void RayManager::drawWalls(Vector2i _screenSize, float _angle)
 			(_screenSize.y / 2) - (wallHeight / 2)
 		};
 
-		// rectangle format
-		// calculates the alpha of the wall, 1 when close, 0 when far.
-		float wallAlpha = (float)wallHeight / (float)_screenSize.y;
-		if (wallAlpha > 1.f) wallAlpha = 1.f;
+		// // rectangle format
+		// // calculates the alpha of the wall, 1 when close, 0 when far.
+		// float wallAlpha = (float)wallHeight / (float)_screenSize.y;
+		// if (wallAlpha > 1.f) wallAlpha = 1.f;
+		
+		// u32 newWallColor = C2D_Color32f(1.f, 1.f, 1.f, wallAlpha);
+		
+		// C2D_DrawRectSolid(wallPosition.x, wallPosition.y, 0, sliceWidth, wallHeight, newWallColor);
 
-		u32 newWallColor = C2D_Color32f(1.f, 1.f, 1.f, wallAlpha);
+		// sprite format
+		C2D_Sprite currentSprite;
 
-		C2D_DrawRectSolid(wallPosition.x, wallPosition.y, 0, sliceWidth, wallHeight, newWallColor);
+		if (tileMap[rays[i].tileHit.y][rays[i].tileHit.x] == 1) currentSprite = brickSprite;
+		else if (tileMap[rays[i].tileHit.y][rays[i].tileHit.x] == 2) currentSprite = catSprite;
+		else currentSprite = floorSprite;
+
+		C2D_SpriteSetCenter(&currentSprite, 0.f, 0.f);
+		sliceSprite(currentSprite, rays[i].sliceIndex);
+		C2D_SpriteSetPos(&currentSprite, wallPosition.x, wallPosition.y);
+		C2D_SpriteSetScale(&currentSprite, sliceWidth, wallHeight);
+		C2D_DrawSprite(&currentSprite);
 	}
+}
+
+void RayManager::initSprites()
+{
+	C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/textures.t3x");
+
+	C2D_SpriteFromSheet(&brickSprite, spriteSheet, 0);
+	C2D_SpriteFromSheet(&catSprite, spriteSheet, 1);
+	C2D_SpriteFromSheet(&ceilingSprite, spriteSheet, 2);
+	C2D_SpriteFromSheet(&floorSprite, spriteSheet, 3);
+}
+
+void RayManager::sliceSprite(C2D_Sprite& _currentSprite, int _slice)
+{
+	C2D_Sprite tempSprite = _currentSprite;
+	Tex3DS_SubTexture newSubtex = *_currentSprite.image.subtex;
+
+	// top, bottom and height are all going to be the same.
+	newSubtex.top = tempSprite.image.subtex->top;
+	newSubtex.bottom = tempSprite.image.subtex->bottom;
+	newSubtex.width = tempSprite.image.subtex->width / sliceCount;
+	newSubtex.height = tempSprite.image.subtex->height;
+	
+	if (_slice == sliceCount)
+	{
+		// special case to prevent out of bounds
+		// this get the initialized subtex variables and increments it from the slice index, taking into account uv.
+		// derived from ((1 / sliceCount) * slice) / 2
+		newSubtex.left = tempSprite.image.subtex->left + (((_slice  - 1) / sliceCount) / 2);
+		newSubtex.right = tempSprite.image.subtex->left + ((_slice / sliceCount) / 2);
+	}
+	else
+	{
+		newSubtex.left = tempSprite.image.subtex->left + ((_slice / sliceCount) / 2);
+		newSubtex.right = tempSprite.image.subtex->left + (((_slice + 1) / sliceCount) / 2);
+	}
+
+	tempSprite.image.subtex = &newSubtex;
+	_currentSprite = tempSprite;
 }
