@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C2D_TargetClear(top, clrBlack);
 			C2D_SceneBegin(top);
-			rayManager.drawWalls(topScreen);
+			rayManager.drawWalls(topScreen, player.angle);
 			
 			C2D_TargetClear(bottom, clrBlack);
 			C2D_SceneBegin(bottom);

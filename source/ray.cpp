@@ -122,21 +122,34 @@ void RayManager::drawRays()
 	}
 }
 
-void RayManager::drawWalls(Vector2i screenSize)
+void RayManager::drawWalls(Vector2i _screenSize, float _angle)
 {
 	// Using the logic from https://lodev.org/cgtutor/raycasting.html
+	
+	float fovRad = playerFov * (M_PI / 180.f);
+	float angleRad = _angle * (M_PI / 180.f);
+	float projectionPlaneDistance = (_screenSize.x / 2.f) / tan(fovRad / 2.f);
+
 	for (int i = 0; i < rayCount; i++)
 	{
-		Vector2i wallSize = {
-			(int)(screenSize.x / rayCount),
-			(int)(screenSize.y / rays[i].distance)
-		};
+		float currentRayAngle = angleRad - (fovRad / 2.f) + ((float)i / (rayCount - 1)) * fovRad;
+		float correctedDistance = rays[i].distance * cos(currentRayAngle - angleRad);
+
+		int sliceWidth = _screenSize.x / rayCount;
+		int wallHeight = (int)((tileSize * projectionPlaneDistance) / correctedDistance);
 
 		Vector2i wallPosition = {
-			(int)(screenSize.x / rayCount) * i - (wallSize.x / 2),
-			(int)(screenSize.y / rayCount) * i - (wallSize.y / 2)
+			i * sliceWidth,
+			(_screenSize.y / 2) - (wallHeight / 2)
 		};
 
-		C2D_DrawRectSolid(wallPosition.x, wallPosition.y, 0, wallSize.x, wallSize.y, wallColor);
+		// rectangle format
+		// calculates the alpha of the wall, 1 when close, 0 when far.
+		float wallAlpha = (float)wallHeight / (float)_screenSize.y;
+		if (wallAlpha > 1.f) wallAlpha = 1.f;
+
+		u32 newWallColor = C2D_Color32f(1.f, 1.f, 1.f, wallAlpha);
+
+		C2D_DrawRectSolid(wallPosition.x, wallPosition.y, 0, sliceWidth, wallHeight, newWallColor);
 	}
 }

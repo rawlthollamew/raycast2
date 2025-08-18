@@ -35,5 +35,5 @@ public:
 	
 	void update(Vector2f _position, float _angle);
 	void drawRays();
-	void drawWalls(Vector2i screenSize);
+	void drawWalls(Vector2i screenSize, float angle);
 };

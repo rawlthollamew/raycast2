@@ -8,11 +8,42 @@ Player::Player(Vector2f _position)
 
 void Player::update(u32 kDown)
 {
-	if (kDown & KEY_UP) 	position.y -= playerSpeed;
-	if (kDown & KEY_DOWN) 	position.y += playerSpeed;
-	if (kDown & KEY_LEFT) 	position.x -= playerSpeed;
-	if (kDown & KEY_RIGHT) 	position.x += playerSpeed;
+	// use current angle for up and down.
+	if (kDown & (KEY_UP | KEY_DOWN))
+	{
+		float dx = playerSpeed * cos(angle * (M_PI / 180));
+		float dy = playerSpeed * sin(angle * (M_PI / 180));
+		
+		if (kDown & KEY_UP)
+		{
+			position.x += dx;
+			position.y += dy;
+		}
+		if (kDown & KEY_DOWN)
+		{
+			position.x -= dx;
+			position.y -= dy;
+		}
+	}
 
+	// same thing for up and down except angle is rotated 90 degrees.
+	if (kDown & (KEY_LEFT | KEY_RIGHT))
+	{
+		float dx = playerSpeed * cos((angle - 90.f) * (M_PI / 180));
+		float dy = playerSpeed * sin((angle - 90.f) * (M_PI / 180));
+		
+		if (kDown & KEY_LEFT)
+		{
+			position.x += dx;
+			position.y += dy;
+		}
+		if (kDown & KEY_RIGHT)
+		{
+			position.x -= dx;
+			position.y -= dy;
+		}
+	}
+	
 	if (kDown & KEY_L)		angle -= rotationSpeed;
 	if (kDown & KEY_R)		angle += rotationSpeed;
 
