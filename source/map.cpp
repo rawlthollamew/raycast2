@@ -1,7 +1,5 @@
 #include "map.h"
 
-u32 clrWhite = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
-
 bool Map::hit(int mapX, int mapY)
 {
 	if (tileMap[mapY][mapX] > 0) return true;
@@ -16,7 +14,7 @@ void Map::render()
 		{
 			if (tileMap[y][x] > 0)
 			{
-				C2D_DrawRectSolid(x * tileSize, y * tileSize, 0, tileSize, tileSize, clrWhite);
+				C2D_DrawRectSolid(x * tileSize, y * tileSize, 0, tileSize, tileSize, wallColor);
 			}
 		}
 	}
