@@ -6,9 +6,13 @@
 #include <stdlib.h>
 
 #include "map.h"
+#include "player.h"
 
 #define SCREEN_WIDTH  400
 #define SCREEN_HEIGHT 240
+
+const float startX = 2.f;
+const float startY = 2.f;
 
 int main(int argc, char* argv[])
 {
@@ -18,25 +22,27 @@ int main(int argc, char* argv[])
 	C2D_Prepare();
 	consoleInit(GFX_BOTTOM, NULL);
 
-	// Create screens
 	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 
-	// Create colors
 	u32 clrWhite = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
 	u32 clrBlack = C2D_Color32(0x00, 0x00, 0x00, 0xFF);
-	
+
+	Player player(startX, startY);
+
 	while (aptMainLoop())
 	{
 		hidScanInput();
 
-		u32 kDown = hidKeysDown();
-		if (kDown & KEY_START)
-			break;
+		u32 kHeld = hidKeysHeld();
+		if (kHeld & KEY_START) break;
+		
+		player.update(kHeld);
 		
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C2D_TargetClear(top, clrBlack);
 			C2D_SceneBegin(top);
 			Map::render();
+			player.render();
 		C3D_FrameEnd(0);
 	}
 

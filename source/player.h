@@ -1,6 +1,7 @@
 #pragma once
 #include <citro2d.h>
 #include <3ds.h>
+#include "map.h"
 
 class Player
 {
