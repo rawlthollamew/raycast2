@@ -5,13 +5,13 @@
 #include "utils.h"
 
 const int viewDistance = 300;
-const int sliceCount = 16;
-const u32 lineColor = C2D_Color32f(0.f, 1.f, 0.f, 1.f);
 
+// raycound needs to be a factor of screenwidth (400)
 const int rayCount = 100;
 const int playerFov = 100;
 
 const int spriteDimentions = 64;
+const int sliceCount = spriteDimentions;
 
 class Ray
 {
@@ -39,7 +39,7 @@ public:
 	void drawRays();
 	void drawWalls(Vector2i screenSize, float angle);
 private:
-	void sliceSprite(C2D_Sprite& _currentSprite, int _slice);
+	void sliceSprite(C2D_Sprite* _currentSprite, int _slice);
 	
 	C2D_Sprite brickSprite;
 	C2D_Sprite catSprite;

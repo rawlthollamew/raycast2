@@ -121,10 +121,47 @@ void RayManager::update(Vector2f _position, float _angle)
 
 void RayManager::drawRays()
 {
+	u32 lineColor = C2D_Color32f(0.f, 1.f, 0.f, 1.f);
+	u32 debugColor = C2D_Color32f(1.f, 0.f, 0.f, 1.f);
+
 	for (int i = 0; i < rayCount; i++)
 	{
-		C2D_DrawLine(rays[i].position.x, rays[i].position.y, lineColor, rays[i].hitPosition.x, rays[i].hitPosition.y, lineColor, 1, 1);
+		if (i == rayCount / 2) 
+		{
+			C2D_DrawLine(
+				rays[i].position.x,
+				rays[i].position.y,
+				debugColor,
+				rays[i].hitPosition.x,
+				rays[i].hitPosition.y,
+				debugColor,
+				2,
+				1
+			);
+		}
+		else
+		{
+			C2D_DrawLine(
+				rays[i].position.x,
+				rays[i].position.y,
+				lineColor,
+				rays[i].hitPosition.x,
+				rays[i].hitPosition.y,
+				lineColor,
+				1,
+				1
+			);
+		}
 	}
+
+	C2D_DrawRectSolid(
+		rays[rayCount / 2].tileHit.x * tileSize,
+		rays[rayCount / 2].tileHit.y * tileSize,
+		999,
+		tileSize,
+		tileSize,
+		debugColor
+	);
 }
 
 void RayManager::drawWalls(Vector2i _screenSize, float _angle)
@@ -137,14 +174,19 @@ void RayManager::drawWalls(Vector2i _screenSize, float _angle)
 
 	for (int i = 0; i < rayCount; i++)
 	{
-		float currentRayAngle = angleRad - (fovRad / 2.f) + ((float)i / (rayCount - 1)) * fovRad;
+		float currentRayAngle = ((_angle - (playerFov / 2.f)) +  (i * (playerFov / rayCount))) * (M_PI / 180);
 		float correctedDistance = rays[i].distance * cos(currentRayAngle - angleRad);
+		
+		// to avoid dividing by 0 later on.
+		if (correctedDistance < 0.1f) correctedDistance = 0.1f;
 
-		int sliceWidth = _screenSize.x / rayCount;
-		int wallHeight = (int)((tileSize * projectionPlaneDistance) / correctedDistance);
+		int rayWidth = _screenSize.x / rayCount;
+		// legacy rectangle format
+		// int wallHeight = (int)((tileSize * projectionPlaneDistance) / correctedDistance);
+		float wallHeight = (int)(spriteDimentions * projectionPlaneDistance) / correctedDistance;
 
-		Vector2i wallPosition = {
-			i * sliceWidth,
+		Vector2f wallPosition = {
+			(float)(i * rayWidth),
 			(_screenSize.y / 2) - (wallHeight / 2)
 		};
 
@@ -165,38 +207,38 @@ void RayManager::drawWalls(Vector2i _screenSize, float _angle)
 		else currentSprite = floorSprite;
 
 		C2D_SpriteSetCenter(&currentSprite, 0.f, 0.f);
-		sliceSprite(currentSprite, rays[i].sliceIndex);
+		sliceSprite(&currentSprite, rays[i].sliceIndex);
 		C2D_SpriteSetPos(&currentSprite, wallPosition.x, wallPosition.y);
-		C2D_SpriteSetScale(&currentSprite, sliceWidth, wallHeight);
+		C2D_SpriteSetScale(&currentSprite, rayWidth, wallHeight / spriteDimentions);
 		C2D_DrawSprite(&currentSprite);
 	}
 }
 
-void RayManager::sliceSprite(C2D_Sprite& _currentSprite, int _slice)
+void RayManager::sliceSprite(C2D_Sprite* _currentSprite, int _slice)
 {
-	C2D_Sprite tempSprite = _currentSprite;
-	Tex3DS_SubTexture newSubtex = *_currentSprite.image.subtex;
+	C2D_Sprite tempSprite = *_currentSprite;
+	Tex3DS_SubTexture* newSubtex = new Tex3DS_SubTexture();
 
 	// top, bottom and height are all going to be the same.
-	newSubtex.top = tempSprite.image.subtex->top;
-	newSubtex.bottom = tempSprite.image.subtex->bottom;
-	newSubtex.width = tempSprite.image.subtex->width / sliceCount;
-	newSubtex.height = tempSprite.image.subtex->height;
+	newSubtex->top = tempSprite.image.subtex->top;
+	newSubtex->bottom = tempSprite.image.subtex->bottom;
+	newSubtex->width = spriteDimentions / sliceCount;
+	newSubtex->height = spriteDimentions;
 	
 	if (_slice == sliceCount)
 	{
 		// special case to prevent out of bounds
 		// this get the initialized subtex variables and increments it from the slice index, taking into account uv.
 		// derived from ((1 / sliceCount) * slice) / 2
-		newSubtex.left = tempSprite.image.subtex->left + (((_slice  - 1) / sliceCount) / 2);
-		newSubtex.right = tempSprite.image.subtex->left + ((_slice / sliceCount) / 2);
+		newSubtex->left = tempSprite.image.subtex->left + (((1.f / sliceCount) * (_slice  - 1)) / 2);
+		newSubtex->right = tempSprite.image.subtex->left + (((1.f / sliceCount) * _slice) / 2);
 	}
 	else
 	{
-		newSubtex.left = tempSprite.image.subtex->left + ((_slice / sliceCount) / 2);
-		newSubtex.right = tempSprite.image.subtex->left + (((_slice + 1) / sliceCount) / 2);
+		newSubtex->left = tempSprite.image.subtex->left + (((1.f / sliceCount) * _slice) / 2);
+		newSubtex->right = tempSprite.image.subtex->left + (((1.f / sliceCount) * (_slice + 1)) / 2);
 	}
 
-	tempSprite.image.subtex = &newSubtex;
-	_currentSprite = tempSprite;
+	tempSprite.image.subtex = newSubtex;
+	*_currentSprite = tempSprite;
 }
