@@ -33,8 +33,8 @@ void Ray::update()
 	};
 	
 	Vector2i mapPosition = {
-		(int)C2D_Clamp(position.x / tileSize, 0, tileDimentions - 1),
-		(int)C2D_Clamp(position.y / tileSize, 0, tileDimentions - 1)
+		(int)C2D_Clamp(position.x / tileSize, 0, mapDimentions.x - 1),
+		(int)C2D_Clamp(position.y / tileSize, 0, mapDimentions.y - 1)
 	};
 
 	Vector2i stepDirection = {
@@ -67,7 +67,7 @@ void Ray::update()
 		}
 
 		// in this case it will never hit. 
-		if (mapPosition.y < 0 || mapPosition.y >= tileDimentions || mapPosition.x < 0 || mapPosition.x >= tileDimentions) distance = viewDistance;
+		if (mapPosition.y < 0 || mapPosition.y >= mapDimentions.y || mapPosition.x < 0 || mapPosition.x >= mapDimentions.y) distance = viewDistance;
 		
 		// in this case it will hit.
 		if (tileMap[(int)(mapPosition.y)][(int)(mapPosition.x)] > 0)
@@ -96,7 +96,12 @@ void Ray::update()
 
 RayManager::RayManager()
 {
-	initSprites();
+	C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/textures.t3x");
+
+	C2D_SpriteFromSheet(&brickSprite, spriteSheet, 0);
+	C2D_SpriteFromSheet(&catSprite, spriteSheet, 1);
+	C2D_SpriteFromSheet(&ceilingSprite, spriteSheet, 2);
+	C2D_SpriteFromSheet(&floorSprite, spriteSheet, 3);
 }
 
 void RayManager::update(Vector2f _position, float _angle)
@@ -165,16 +170,6 @@ void RayManager::drawWalls(Vector2i _screenSize, float _angle)
 		C2D_SpriteSetScale(&currentSprite, sliceWidth, wallHeight);
 		C2D_DrawSprite(&currentSprite);
 	}
-}
-
-void RayManager::initSprites()
-{
-	C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/textures.t3x");
-
-	C2D_SpriteFromSheet(&brickSprite, spriteSheet, 0);
-	C2D_SpriteFromSheet(&catSprite, spriteSheet, 1);
-	C2D_SpriteFromSheet(&ceilingSprite, spriteSheet, 2);
-	C2D_SpriteFromSheet(&floorSprite, spriteSheet, 3);
 }
 
 void RayManager::sliceSprite(C2D_Sprite& _currentSprite, int _slice)

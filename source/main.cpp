@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 		u32 kHeld = hidKeysHeld();
 		if (kHeld & KEY_START) break;
 		
-		player.update(kHeld);
+		player.update();
 		rayManager.update(player.position, player.angle);
 		
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);

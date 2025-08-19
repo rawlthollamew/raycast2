@@ -8,8 +8,8 @@ const int viewDistance = 300;
 const int sliceCount = 16;
 const u32 lineColor = C2D_Color32f(0.f, 1.f, 0.f, 1.f);
 
-const int rayCount = 90;
-const int playerFov = 90;
+const int rayCount = 100;
+const int playerFov = 100;
 
 const int spriteDimentions = 64;
 
@@ -39,7 +39,6 @@ public:
 	void drawRays();
 	void drawWalls(Vector2i screenSize, float angle);
 private:
-	void initSprites();
 	void sliceSprite(C2D_Sprite& _currentSprite, int _slice);
 	
 	C2D_Sprite brickSprite;

@@ -2,9 +2,10 @@
 #include <citro2d.h>
 #include <utils.h>
 
-const int tileDimentions = 20;
+const Vector2i mapDimentions = { 20, 20 };
 
-const int tileMap[tileDimentions][tileDimentions] = 
+// till i fix it
+const int tileMap[20][20] = 
 {
 	{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
 	{1,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
@@ -29,7 +30,7 @@ const int tileMap[tileDimentions][tileDimentions] =
 };
 
 // For best fit (bottom screen height is 240)
-const int tileSize = (int)(240 / tileDimentions);
+const int tileSize = (int)(240 / mapDimentions.y);
 
 const int wallColor = C2D_Color32f(1.f, 1.f, 1.f, 0.5f);
 

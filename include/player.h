@@ -17,8 +17,9 @@ public:
 	
 	Vector2f position;
 	float angle;
+	bool shooting;
 	
-	void update(u32 _kDown);
+	void update();
 	void render();
 private:
 	void collision(Vector2f _currentPosition, Vector2f _newPosition);

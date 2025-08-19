@@ -1,25 +1,27 @@
 #include "player.h"
 
 Player::Player(Vector2f _position)
-	: position(_position), angle(0.f)
+	: position(_position), angle(0.f), shooting(false)
 {
 	;
 }
 
-void Player::update(u32 _kDown)
+void Player::update()
 {
+	u32 kHeld = hidKeysHeld();
+
 	// use current angle for up and down.
-	if (_kDown & (KEY_UP | KEY_DOWN))
+	if (kHeld & (KEY_UP | KEY_DOWN))
 	{
 		float dx = playerSpeed * cos(angle * (M_PI / 180));
 		float dy = playerSpeed * sin(angle * (M_PI / 180));
 
-		if (_kDown & KEY_UP)
+		if (kHeld & KEY_UP)
 		{
 			collision(position, {position.x + dx, position.y});
 			collision(position, {position.x, position.y + dy});
 		}
-		if (_kDown & KEY_DOWN)
+		if (kHeld & KEY_DOWN)
 		{
 			collision(position, {position.x - dx, position.y});
 			collision(position, {position.x, position.y - dy});
@@ -27,27 +29,30 @@ void Player::update(u32 _kDown)
 	}
 	
 	// same thing for up and down except angle is rotated 90 degrees.
-	if (_kDown & (KEY_LEFT | KEY_RIGHT))
+	if (kHeld & (KEY_LEFT | KEY_RIGHT))
 	{
 		float dx = playerSpeed * cos((angle - 90.f) * (M_PI / 180));
 		float dy = playerSpeed * sin((angle - 90.f) * (M_PI / 180));
 		
-		if (_kDown & KEY_LEFT)
+		if (kHeld & KEY_LEFT)
 		{
 			collision(position, {position.x + dx, position.y});
 			collision(position, {position.x, position.y + dy});
 		}
-		if (_kDown & KEY_RIGHT)
+		if (kHeld & KEY_RIGHT)
 		{
 			collision(position, {position.x - dx, position.y});
 			collision(position, {position.x, position.y - dy});
 		}
 	}
 	
-	if (_kDown & KEY_L)		angle -= rotationSpeed;
-	if (_kDown & KEY_R)		angle += rotationSpeed;
-
 	angle = fmodf(angle, 360.f);
+	
+	if (kHeld & KEY_L)		angle -= rotationSpeed;
+	if (kHeld & KEY_R) 		angle += rotationSpeed;
+
+	if (kHeld & KEY_A)		shooting = true;
+	if (!(kHeld & KEY_A)) 	shooting = false;
 }
 
 void Player::render()
@@ -58,8 +63,8 @@ void Player::render()
 void Player::collision(Vector2f _currentPosition, Vector2f _newPosition)
 {
 	Vector2i mapPosition = {
-		(int)C2D_Clamp(_newPosition.x / tileSize, 0, tileDimentions - 1),
-		(int)C2D_Clamp(_newPosition.y / tileSize, 0, tileDimentions - 1)
+		(int)C2D_Clamp(_newPosition.x / tileSize, 0, mapDimentions.x - 1),
+		(int)C2D_Clamp(_newPosition.y / tileSize, 0, mapDimentions.y - 1)
 	};
 
 	if (!Map::hit(mapPosition))

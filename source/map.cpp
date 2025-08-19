@@ -8,9 +8,9 @@ bool Map::hit(Vector2i _position)
 
 void Map::render()
 {
-	for (int x = 0; x < tileDimentions; x++)
+	for (int x = 0; x < mapDimentions.x; x++)
 	{
-		for (int y = 0; y < tileDimentions; y++)
+		for (int y = 0; y < mapDimentions.y; y++)
 		{
 			if (tileMap[y][x] > 0)
 			{
