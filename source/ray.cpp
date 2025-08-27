@@ -22,6 +22,8 @@ void Ray::update()
 	// using principles borrowed from https://lodev.org/cgtutor/raycasting.html
 	// specifically the part on the DDA algorithm
 
+	// we need to keep track of which side the ray hit, being the x or y for the wall distance.
+
 	Vector2f rayDirection = {
 		cosf(angle),
 		sinf(angle)
@@ -72,11 +74,13 @@ void Ray::update()
 		// in this case it will hit.
 		if (tileMap[(int)(mapPosition.y)][(int)(mapPosition.x)] > 0)
 		{
-			float hitDistance = hitVertical ? (sideDistance.x - deltaDistance.x) : (sideDistance.y - deltaDistance.y);
+			distance = hitVertical
+				? sideDistance.x - deltaDistance.x
+				: sideDistance.y - deltaDistance.y;
 			
 			hitPosition = {
-				position.x + rayDirection.x * hitDistance,
-				position.y + rayDirection.y * hitDistance
+				position.x + rayDirection.x * distance,
+				position.y + rayDirection.y * distance
 			};
 			
 			if (tileHit.x == -1.f && tileHit.y == -1.f) tileHit = { mapPosition.x, mapPosition.y };
@@ -87,21 +91,18 @@ void Ray::update()
 					? (int)(fmod(hitPosition.y, tileSize) / tileSize * sliceCount) + 1
 					: (int)(fmod(hitPosition.x, tileSize) / tileSize * sliceCount) + 1;
 			}
-			distance = hitDistance;
 		}
 		if (sideDistance.x > viewDistance && sideDistance.y > viewDistance) distance = viewDistance;
 	}
 	if (distance == -1.f) distance = 0.f;
 }
 
-RayManager::RayManager()
+RayManager::RayManager(C2D_SpriteSheet _sheet)
 {
-	C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/textures.t3x");
-
-	C2D_SpriteFromSheet(&brickSprite, spriteSheet, 0);
-	C2D_SpriteFromSheet(&catSprite, spriteSheet, 1);
-	C2D_SpriteFromSheet(&ceilingSprite, spriteSheet, 2);
-	C2D_SpriteFromSheet(&floorSprite, spriteSheet, 3);
+	C2D_SpriteFromSheet(&brickSprite,	_sheet, BrickTexture);
+	C2D_SpriteFromSheet(&catSprite,		_sheet, CatTexture);
+	C2D_SpriteFromSheet(&skyboxSprite,	_sheet, SkyboxTexture);
+	C2D_SpriteFromSheet(&floorSprite,	_sheet, FloorTexture);
 }
 
 void RayManager::update(Vector2f _position, float _angle)
@@ -117,6 +118,7 @@ void RayManager::update(Vector2f _position, float _angle)
 		Ray newray(rayAngle, _position);
 		rays[i] = newray;
 	}
+
 }
 
 void RayManager::drawRays()
@@ -135,7 +137,7 @@ void RayManager::drawRays()
 				rays[i].hitPosition.x,
 				rays[i].hitPosition.y,
 				debugColor,
-				2,
+				5,
 				1
 			);
 		}
@@ -157,7 +159,7 @@ void RayManager::drawRays()
 	C2D_DrawRectSolid(
 		rays[rayCount / 2].tileHit.x * tileSize,
 		rays[rayCount / 2].tileHit.y * tileSize,
-		999,
+		0,
 		tileSize,
 		tileSize,
 		debugColor
@@ -170,23 +172,22 @@ void RayManager::drawWalls(Vector2i _screenSize, float _angle)
 	
 	float fovRad = playerFov * (M_PI / 180.f);
 	float angleRad = _angle * (M_PI / 180.f);
-	float projectionPlaneDistance = (_screenSize.x / 2.f) / tan(fovRad / 2.f);
 
 	for (int i = 0; i < rayCount; i++)
 	{
-		float currentRayAngle = ((_angle - (playerFov / 2.f)) +  (i * (playerFov / rayCount))) * (M_PI / 180);
-		float correctedDistance = rays[i].distance * cos(currentRayAngle - angleRad);
+		// float correctedDistance = rays[i].distance * cos(rays[i].angle - angleRad);
 		
 		// to avoid dividing by 0 later on.
-		if (correctedDistance < 0.1f) correctedDistance = 0.1f;
+		// if (correctedDistance < 0.1f) correctedDistance = 0.1f;
 
-		int rayWidth = _screenSize.x / rayCount;
-		// legacy rectangle format
-		// int wallHeight = (int)((tileSize * projectionPlaneDistance) / correctedDistance);
-		float wallHeight = (int)(spriteDimentions * projectionPlaneDistance) / correctedDistance;
+		// support for widerays 
+		float rayWidth = _screenSize.x / rayCount;
+		float wallHeight = spriteDimentions / rays[i].distance;
+		// float rayScreenX = tan(rays[i].angle - angleRad) * projectionPlaneDistance;
 
 		Vector2f wallPosition = {
-			(float)(i * rayWidth),
+			rayWidth * i,
+			// (_screenSize.x / 2) + rayScreenX,
 			(_screenSize.y / 2) - (wallHeight / 2)
 		};
 
@@ -202,14 +203,14 @@ void RayManager::drawWalls(Vector2i _screenSize, float _angle)
 		// sprite format
 		C2D_Sprite currentSprite;
 
-		if (tileMap[rays[i].tileHit.y][rays[i].tileHit.x] == 1) currentSprite = brickSprite;
-		else if (tileMap[rays[i].tileHit.y][rays[i].tileHit.x] == 2) currentSprite = catSprite;
+		if (tileMap[rays[i].tileHit.y][rays[i].tileHit.x] == WallTile) currentSprite = brickSprite;
+		else if (tileMap[rays[i].tileHit.y][rays[i].tileHit.x] == CatTile) currentSprite = catSprite;
 		else currentSprite = floorSprite;
 
-		C2D_SpriteSetCenter(&currentSprite, 0.f, 0.f);
+		C2D_SpriteSetCenter(&currentSprite, 0.f, 0.5f);
 		sliceSprite(&currentSprite, rays[i].sliceIndex);
 		C2D_SpriteSetPos(&currentSprite, wallPosition.x, wallPosition.y);
-		C2D_SpriteSetScale(&currentSprite, rayWidth, wallHeight / spriteDimentions);
+		C2D_SpriteSetScale(&currentSprite, rayWidth, wallHeight);
 		C2D_DrawSprite(&currentSprite);
 	}
 }

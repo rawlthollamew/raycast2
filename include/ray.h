@@ -1,13 +1,13 @@
 #pragma once
 #include <vector>
-#include <optional>
 #include "map.h"
 #include "utils.h"
+#include "textures.h"
 
 const int viewDistance = 300;
 
-// raycound needs to be a factor of screenwidth (400)
-const int rayCount = 100;
+// raycount needs to be a factor of screenwidth (400(wanna do 800 but cannot.))
+const int rayCount = 400;
 const int playerFov = 100;
 
 const int spriteDimentions = 64;
@@ -32,7 +32,7 @@ public:
 class RayManager
 {
 public:
-	RayManager();
+	RayManager(C2D_SpriteSheet _sheet);
 	std::vector<Ray> rays;
 	
 	void update(Vector2f _position, float _angle);
@@ -43,6 +43,6 @@ private:
 	
 	C2D_Sprite brickSprite;
 	C2D_Sprite catSprite;
-	C2D_Sprite ceilingSprite;
+	C2D_Sprite skyboxSprite;
 	C2D_Sprite floorSprite;
 };

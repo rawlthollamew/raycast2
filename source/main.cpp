@@ -9,9 +9,11 @@
 #include "player.h"
 #include "utils.h"
 #include "ray.h"
+#include "textures.h"
+#include "skybox.h"
 
 const Vector2i topScreen = { 400, 240 };
-const Vector2i bottomScreen = { 320, 240};
+const Vector2i bottomScreen = { 320, 240 };
 const Vector2f startPosition = { 2.f * tileSize, 2.f * tileSize };
 
 int main(int argc, char* argv[])
@@ -28,8 +30,10 @@ int main(int argc, char* argv[])
 
 	u32 clrBlack = C2D_Color32(0x00, 0x00, 0x00, 0xFF);
 
+	Textures textures("romfs:/gfx/textures.t3x");
 	Player player(startPosition);
-	RayManager rayManager;
+	Skybox skybox(textures.sheet);
+	RayManager rayManager(textures.sheet);
 
 	while (aptMainLoop())
 	{
@@ -44,6 +48,7 @@ int main(int argc, char* argv[])
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C2D_TargetClear(top, clrBlack);
 			C2D_SceneBegin(top);
+			skybox.draw(topScreen, player.angle);
 			rayManager.drawWalls(topScreen, player.angle);
 			
 			C2D_TargetClear(bottom, clrBlack);
